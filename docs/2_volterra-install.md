@@ -134,6 +134,8 @@ Sites -> Site Listに作成したVolterra Nodeが表示されます。SW version
 
 ![registration_finish](./pics/registration_finish.png)
 
+ここでは2つのVolterra node `site1`と`site2`を作成します。
+
 ### Labelの作成
 
 Volterra Nodeやpodなどに設定するLabelは`shared label`または個別での手動設定が可能です。shared labelはshared namespaceより作成します。
@@ -149,6 +151,7 @@ Manage -> Labels > Known Keys から `Add known key` でshared Labelsを作成�
 ## Labelの設定
 
 作成したラベルをVolterra Nodeに設定します。system namespaceの Sites -> Site list より、Volterra NodeのEditより作成したラベルを追加します。
+Labelは`pref:tokyo`
 
 ![site_label1](./pics/site_labels1.png)
 ![site_label2](./pics/site_labels2.png)

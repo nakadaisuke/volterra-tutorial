@@ -18,13 +18,17 @@ Generalの`My Namespaces`から、 `Add namespace`を開き、Namapace名を入�
 
 作成したNamespaceに移動し、Manage -> Virtual host ->Virtual sitesより `Add Virtual site`を選択します。
 nameに virtual-site名、Site TypeはCEを選択し、Site Selector ExpressionではSiteに設定したラベルを選択します。 Continueを選択するとVirtual siteが作成されます。
-例) Name: trial-vsite, Site Type: CE, Selector Expression: site-setting:kvm
+
+以下のVirutal siteを設定します。
+Name: `pref-tokyo`
+Site type: `CE`
+Site Selecter Expression: `pref:tokyo`
 
 ![vsite1](./pics/vsite1.png)
 
 ## Virtual kubernetesの作成
 
-Applications -> Virtual k8sより`Add Virtual K8s`を選択します。Nameを入力し、Select vsite refから作成したVirtual Siteを選択します。 Add Virtual k8sをクリックするとVirtual kubernetesが作成されます。
+Applications -> Virtual k8sより`Add Virtual K8s`を選択します。Nameを入力し、Select vsite refから作成した`pref-tokyo`を選択します。 Add Virtual k8sをクリックするとVirtual kubernetesが作成されます。
 *作成まで数十秒かかります。
 
 ![vk8s1](./pics/vk8s1.png)
@@ -58,4 +62,26 @@ spec:
         - containerPort: 80
 ```
 
+![vk8s_deplyoment](./pics/vk8s_deployment.png)
 
+## Serviceの作成
+
+`Add service`を選択するとYaml(json)を入力する画面が開きます。
+下のようにServiceを設定すると、該当するSiteにServiceが設定されます。
+
+```apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  namespace: trial
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+  selector:
+    app: nginx
+```
+
+![vk8s_service](./pics/vk8s_service.png)

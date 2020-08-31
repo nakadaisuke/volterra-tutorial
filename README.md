@@ -32,12 +32,11 @@ Freeのアカウントは <https://console.ves.volterra.io/signup/usage_plan> �
 1. [Volterraの基礎知識](./docs/1_volterra-tutorial.md)
 2. [Volterra Nodeのインストールと設定](./docs/2_volterra-install.md)
 3. [Virtual Kubernetesの設定](./docs/3_virtual_kubernetes.md)
-4. [アプリケーションの配信](./docs/4_ingress_gateway.md)
-5. Ingress Gatewayの設定
-6. 複数Virtual siteの使い方
-7. App to App 接続の設定
-8. Application Delivery Controller
-9. Ingress Gateway
-10. Web Application Firewall
-11. Service Mesh
-12. AL/MLの設定
+4. [Ingress Gatewayの設定](./docs/4_ingress_gateway.md)
+5. [複数Virtual siteの使い方](./docs/5_multiple_vsite.md)
+6. App to App 接続の設定
+7. Application Delivery Controller
+8. Ingress Gateway
+9. Web Application Firewall
+10. Service Mesh
+11. AL/MLの設定

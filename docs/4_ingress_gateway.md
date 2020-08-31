@@ -49,7 +49,7 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 - Name: `nginx-lb`
 - Domains: `nginx.localhost`
 - Select Type of Load Balancer: `HTTP`
-- Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
+- Default Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
 - VIP Configuration: `Show Advanced Fields`を有効にし、`Advertise Custom`を指定
 - Configureを選択
 - Select Where to Advertise: `virtual-site` -> namespace/

@@ -34,8 +34,8 @@ Freeのアカウントは <https://console.ves.volterra.io/signup/usage_plan> �
 3. [Virtual Kubernetesの設定](./docs/3_virtual_kubernetes.md)
 4. [Ingress Gatewayの設定](./docs/4_ingress_gateway.md)
 5. [複数Virtual siteの使い方](./docs/5_multiple_vsite.md)
-6. App to App 接続の設定
-7. Application Delivery Controller
+6. [App to App 接続の設定](./docs/6_app_app.md)
+7. [Application Delivery Controller](./docs/7_app_delivery_controller.md)
 8. Ingress Gateway
 9. Web Application Firewall
 10. Service Mesh

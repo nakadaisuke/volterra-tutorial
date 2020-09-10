@@ -13,29 +13,60 @@ ESXiやKVM上にNginxでWebSiteをたちあげ、VoltMeshのInsideインター�
 
 ## Origin poolの作成
 
+namespaceは`seurity`とし、virtual-siteは`vsite-adc`を作成します。
 VoltMesh経由で通信したいVMのIPアドレスをOrigin-poolに登録します。
-Select Type of Orivin Serverで`Private IP of Origin Server on given Stes`を選択します。
-実際のNginxサーバのIPアドレスを入力し、Volterra Nodeを選択します。ネットワークはInside NetworkまたはOutside Networkを選択します。(MultiNICの場合はInside,Single NICの場合はOutside)
+
+- origin pool
+  - name: `nginx-vm`
+  - Select Type of Orivin Server: `Private IP of Origin Server on given Stes`を選択します。
+
+  - IP: `実際のNginxサーバのIPアドレス`
+  - Select site or Virtual site: `virtual-site`
+  - virsual-site: `vsite-adc`
+  - Slect Network on the site: `Outside Network`
+  - port: `80`
+  
+    (MultiNICの場合はInside,Single NICの場合はOutside)
+
 > Add itemで複数サーバを追加できます。
 
 ![app_delivery_cntl_origin.png](./pics/app_delivery_cntl_origin.png)
 
-## HTTP load balancerの設定
+## HTTP load balancerの設定 (from Internet)
 
 Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
 
-NameはLoad Balancer名を入力します。(nginx-ingressなどを)
-Basic Configurationの”Domains”はhttp header のHostnameを入力します。
-Select Type of Load Balancerは”HTTP”を指定します。
-Default Route Origin Poolsは作成したPoolを指定します。
+- HTTP load balancer
+  - Name: `nginx-ingress`
+  - Basic Configuration
+    - Domains: `dummy.domain`
 
-- Name: `nginx-adc`
-- Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
-- Select Type of Load Balancer: `HTTP`
-- Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
+    外部DNSサーバがない場合、CNAME用にに、払い出されたドメインををHTTP load Balancerのドメイン名に設定すると、Webブラウザなどでアクセスできます。dummiy.domainを払い出されたドメインで上書きしてください。
+    - Select Type of Load Balancer: `HTTP`
+    - Default Route Origin Pools: `nginx-vm`
+
+![app_delivery_cntl_httplb1.png](./pics/app_delivery_cntl_httplb1.png)
+![app_delivery_cntl_httplb2.png](./pics/app_delivery_cntl_httplb2.png)
+
+## HTTP load balancerの設定 (from Local)
+
+エッジノードに直接アクセスしたい場合は、Custom Adcertise VIPを設定します。
+Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+
+- HTTP load balancer
+  - Basic Configuration
+    - Domains: `localhost.com`
+    - Select Type of Load Balancer: `HTTP`
+  - Default Origin Servers: `nginx-vm`
+  - Vip Cconfigurations
+    - Show Adbanced Fields: `enable`
+    - Where to Advertise VIP: `Advertise Custome`
+    - Configure
+      - Select Where to Advertise: `Virtual Site`
+      - Site Network: `Inside and Outside Network`
+      - Virtual Site Reference: `vsite-adc`
 
 ## 確認
 
 設定するとDNS infoにVolterraからdomain名が払い出されます。任意のDNSサーバのCNAMEレコードに設定してください。
 ドメインにアクセスするとNginxのWebUIが表示されます。
-> ドメイン名やDNSサーバにアクセスできない場合、払い出されたDNSをHTTP load Balancerのドメイン名に設定すると、Webブラウザなどでアクセスできます。

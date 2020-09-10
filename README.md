@@ -36,7 +36,6 @@ Freeのアカウントは <https://console.ves.volterra.io/signup/usage_plan> �
 5. [複数Virtual siteの使い方](./docs/5_multiple_vsite.md)
 6. [App to App 接続の設定](./docs/6_app_app.md)
 7. [Application Delivery Controller](./docs/7_app_delivery_controller.md)
-8. Ingress Gateway
-9. Web Application Firewall
-10. Service Mesh
-11. AL/MLの設定
+8. [Netwrok policy](./docs/8_network_policy.md)
+9. [Service policy (Ingress Gateway)](./docs/9_service_policy.md)
+10. [WAF](./docs/10_waf.md)

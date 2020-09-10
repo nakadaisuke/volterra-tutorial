@@ -20,6 +20,8 @@ Remote EndpointからLocal Endpointに入ってくるトラフィックをIngres
 
 ### インターネットへの通信制御
 
+namespaceは`seurity`とし、virtual-siteは`vsite-adc`を作成します。
+ラベルが異なる2つのPod, app:allow-serverとapp:deny-serverを作成します。
 ラベルが異なる2つのPod, app:ce-clientとapp:ce-otherを作成します。
 
 ce-client
@@ -127,6 +129,8 @@ ce-clientはgoogle-dnsのポリシーがかかっているため8.8.8.8にはpin
 
 ### 同一Kubernetes Clouster内での通信制御
 
+namespaceは`seurity`とし、virtual-siteは`vsite-adc`を作成します。
+ラベルが異なる2つのPod, app:allow-serverとapp:deny-serverを作成します。
 app:ce-client からのみapp:server-appへの通信を許可し、 app:ce-otherは拒否します
 
 ![network_policy_same_node1](./pics/network_policy_same_node1.png)

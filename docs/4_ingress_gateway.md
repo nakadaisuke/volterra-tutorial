@@ -1,6 +1,6 @@
 # Ingress Gatewayの設定
 
-作成したKubernetes Serviceはそのままでは外部からアクセスできないため、作成したVoltStack上のアプリケーションに外部から接続できるようにIngress Gatewayを設定します。Internet上のVoltMeshを利用しても良いですし、ローカルのVolterra Nodeの利用も可能です。
+Kubernetes Serviceはそのままでは外部からアクセスできないため、作成したVoltStack上のアプリケーションに外部から接続できるようにIngress Gatewayを設定します。Internet上のVoltMeshを利用しても良いですし、ローカルのVolterra Nodeの利用も可能です。
 
 Ingress GatewayはHTTP/TCP loadbalancerとして動作します。Loadlabancerの宛先はOrigin Poolとして、定義します。
 
@@ -8,7 +8,7 @@ Ingress GatewayはHTTP/TCP loadbalancerとして動作します。Loadlabancer�
 
 ## Origin poolの作成
 
-作成したNginxを外部からアクセスできるようにIngress Gatewayを設定します。作成したNginx ServiceをOrigin poolとして登録します。 Manage -> Origin Pools で `Add Origin Pool`を選択します。
+Virtual Kubernetesの設定で作成したNginxを外部からアクセスできるようにIngress Gatewayを設定します。作成したNginx ServiceをOrigin poolとして登録します。 Manage -> Origin Pools で `Add Origin Pool`を選択します。
 
 以下の設定をします
 
@@ -18,6 +18,8 @@ Ingress GatewayはHTTP/TCP loadbalancerとして動作します。Loadlabancer�
 - Select Site or Virtual Site: `Virtual Site` -> `namespace/pref-tokyo`
 - Select Network on the Site: `Vk8s Networks on Site`
 - Port: `80`
+
+![origin_server](./pics/origin_server.png)
 
 ## インターネットからの接続
 
@@ -33,7 +35,8 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 設定するとDNS infoにVolterraからdomain名が払い出されます。作成したロードヴァランダーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
 外部から設定したドメインにアクセスするとNginxのWebUIが表示されます。
 
-![ingress_config](./pics/ingress_config.png)
+![ingress_config1](./pics/ingress_config1.png)
+![ingress_config2](./pics/ingress_config2.png)
 
 ブラウザにドメインを入力すると表示されます。
 
@@ -57,6 +60,9 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 - Virtual Site Reference: `namespace/pref-tokyo`
 
 > virtual-siteで`pref-osaka`を作成し、Virtual Site Referenceに`pref-osaka`を設定すると、pref-osakaのVolterra Nodeにアクセスし、pref-tokyoのアプリにアクセスできます。
+
+![ingress_config3](./pics/ingress_config3.png)
+![ingress_config4](./pics/ingress_config4.png)
 
 ローカルDNSがない場合は/etc/hostsに設定したドメイン名とエッジノードのIPアドレスを入力するか、Curlで -H “Host: domain name”で確認します。
 

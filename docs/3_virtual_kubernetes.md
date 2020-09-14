@@ -19,10 +19,14 @@ Generalの`My Namespaces`から、 `Add namespace`を開き、Namapace名を入�
 作成したNamespaceに移動し、Manage -> Virtual host ->Virtual sitesより `Add Virtual site`を選択します。
 nameに virtual-site名、Site TypeはCEを選択し、Site Selector ExpressionではSiteに設定したラベルを選択します。 Continueを選択するとVirtual siteが作成されます。
 
-以下のVirutal siteを設定します。
+以下の2つのVirutal siteを設定します。
 Name: `pref-tokyo`
 Site type: `CE`
 Site Selecter Expression: `pref:tokyo`
+
+Name: `pref-osaka`
+Site type: `CE`
+Site Selecter Expression: `pref:osaka`
 
 ![vsite1](./pics/vsite1.png)
 
@@ -79,6 +83,7 @@ metadata:
 spec:
   ports:
   - port: 80
+    targetPort: 80
     protocol: TCP
   selector:
     app: nginx

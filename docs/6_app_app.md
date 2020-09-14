@@ -7,7 +7,20 @@
 
 ## vk8s manifest の作成
 
-5_multiple_vsiteと同様に、vk8sに2つのVirtual-site “pref-tokyo”と”pref-osaka”を作成し、それぞれにDeploymentを作成します。
+namespace:`app-app`を作成し、vk8sに2つの以下の2つのVirutal siteを設定します。
+Name: `pref-tokyo`
+Site type: `CE`
+Site Selecter Expression: `pref:tokyo`
+
+Name: `pref-osaka`
+Site type: `CE`
+Site Selecter Expression: `pref:osaka`
+
+- Freeユーザーの場合は既存のNamespaceを先に削除してから作成してください。
+
+![v8s_multi_vsite](./pics/v8s_multi_vsite.png)
+
+vk8sに2つのVirtual-site `pref-tokyo`と`pref-osaka`に、Deploymentを作成します。
 
 pref-tokyo
 
@@ -15,9 +28,9 @@ pref-tokyo
 apiVersion: apps/v1
 metadata:
   name: app-client
-  namespace: multi-sites
+  namespace: app-app
   annotations:
-    ves.io/virtual-sites: multi-sites/pref-tokyo
+    ves.io/virtual-sites: app-app/pref-tokyo
 spec:
   replicas: 1
   selector:
@@ -29,7 +42,7 @@ spec:
         app: app-client
     spec:
       containers:
-        - name: tokyo-app
+        - name: app-client
           image: dnakajima/netutils:1.3
 ```
 
@@ -39,9 +52,9 @@ pref-osaka
 apiVersion: apps/v1
 metadata:
   name: osaka-app
-  namespace: multi-sites
+  namespace: app-app
   annotations:
-    ves.io/virtual-sites: multi-sites/pref-osaka
+    ves.io/virtual-sites: app-app/pref-osaka
 spec:
   replicas: 1
   selector:
@@ -69,18 +82,21 @@ vk8sにVirtual-site:`pref-osaka`にserviceを作成します
 kind: Service
 metadata:
   name: osaka-app
-  namespace: multi-sites
+  namespace: app-app
   labels:
     app: osaka-app
   annotations:
-    ves.io/virtual-sites: multi-sites/pref-osaka
+    ves.io/virtual-sites: app-app/pref-osaka
 spec:
   ports:
   - port: 8080
+    targetport: 8080
     protocol: TCP
   selector:
     app: osaka-app
 ```
+
+![app_app_service](./pics/app_app_service.png)
 
 ## Ingress gatewayの作成
 
@@ -90,8 +106,8 @@ spec:
 
 - Name: `osaka-app`
 - Basic Configuration: ”Select Type of Origin Server”は`k8sService Name of Origin Ser...`を選択します。
-- Service Name: `osaka-app.namespace`
-- Select Site or Virtual Site: `Virtual Site`を選択し、`namespace/pref-osaka`を指定します。
+- Service Name: `osaka-app.app-app`
+- Select Site or Virtual Site: `Virtual Site`を選択し、`app-app/pref-osaka`を指定します。
 - Select Network on the Site: `Vk8s Networks on Site`を指定します。
 - Port: `8080`を設定します。
 
@@ -105,11 +121,14 @@ HTTP loadbalancerを作成し、Origin poolを設定します。
 Name: `osaka-app-lb`
 Domains: `osaka-app-1`
 Select Type of Load Balancer: `http`
-Default Origin Servers: `namespace/osaka-app`
+Default Origin Servers: `app-app/osaka-app`
 VIP Configuration: VIP Configuration を有効化し、`Advertise Custom` を選択しConfigureを選択
 Select Where to Advertise: `virtual-site`
 Site Network: `Inside and Outside Network`
-Virtual Site Reference: `namespace/pref-tokyo`
+Virtual Site Reference: `app-app/pref-tokyo`
+
+![app_app_http_lb1](./pics/http_lb1.png)
+![app_app_http_lb2](./pics/http_lb2.png)
 
 ### アクセス確認
 

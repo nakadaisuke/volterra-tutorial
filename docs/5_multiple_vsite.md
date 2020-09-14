@@ -37,7 +37,7 @@ Name: `pref-osaka`
 Site type: `CE`
 Site Selecter Expression: `pref:osaka`
 
-- Freeユーザーの場合はnamespace:trialを先に削除してから作成してください。
+- Freeユーザーの場合は既存のNamespaceを先に削除してから作成してください。
 
 ![v8s_multi_vsite](./pics/v8s_multi_vsite.png)
 
@@ -154,14 +154,14 @@ spec:
 - Name: `tokyo-app`
 - Select Type of Origin Server: `k8sService Name of Origin Ser...`
 - Service Name: `tokyo-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
-- Select Site or Virtual Site: `Virtual Site` -> `namespace/pref-tokyo`
+- Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-tokyo`
 - Select Network on the Site: `Vk8s Networks on Site`
 - Port: `8080`
 
 - Name: `osaka-app`
 - Select Type of Origin Server: `k8sService Name of Origin Ser...`
 - Service Name: `osaka-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
-- Select Site or Virtual Site: `Virtual Site` -> `namespace/pref-osaka`
+- Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-osaka`
 - Select Network on the Site: `Vk8s Networks on Site`
 - Port: `8080`
 

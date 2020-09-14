@@ -148,6 +148,11 @@ Manage -> Labels > Known Keys から `Add known key` でshared Labelsを作成�
 ![shared_label1](./pics/shared_labels1.png)
 ![shared_label2](./pics/shared_labels2.png)
 
+ここでは以下のラベルを設定します。
+
+- Label key: pref
+  - Label values: `tokyo`, `osaka`
+
 ## Labelの設定
 
 作成したラベルをVolterra Nodeに設定します。system namespaceの Sites -> Site list より、Volterra NodeのEditより作成したラベルを追加します。

@@ -7,7 +7,7 @@
 
 ## vk8s manifest の作成
 
-namespace:`app-app`を作成し、vk8sに2つの以下の2つのVirutal siteを設定します。
+namespace:`app-app`を作成し、vk8sに以下の2つのVirutal siteを設定します。
 Name: `pref-tokyo`
 Site type: `CE`
 Site Selecter Expression: `pref:tokyo`

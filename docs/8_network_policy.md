@@ -20,8 +20,26 @@ Remote EndpointからLocal Endpointに入ってくるトラフィックをIngres
 
 ### インターネットへの通信制御
 
-namespaceは`seurity`とし、virtual-siteは`vsite-adc`を作成します。
-ラベルが異なる2つのPod, app:allow-serverとapp:deny-serverを作成します。
+namespace:`security`を作成し、vk8sにVirutal siteを設定します。
+Name: `pref-tokyo`
+Site type: `CE`
+Site Selecter Expression: `pref:tokyo`
+
+- Freeユーザーの場合は既存のNamespaceを先に削除してから作成してください。
+
+shared namespaceで known keyを作成します。
+
+Label key: `app`
+
+label value:
+
+- `ce-client`
+- `ce-other`
+
+![shared_label](./pics/shared_label.png)
+
+Network policyで使用するラベルは、2020/8/24時点でShared namespaceのknown labelsとknown keysに設定されているか、ves.io/app ラベルを使用する必要があります。
+
 ラベルが異なる2つのPod, app:ce-clientとapp:ce-otherを作成します。
 
 ce-client
@@ -69,10 +87,6 @@ spec:
         - name: ce-other
           image: dnakajima/netutils:1.3
 ```
-
-Network policyで使用するラベルは、2020/8/24時点でShared namespaceのknown labelsとknown keysに設定されているか、ves.io/app ラベルを使用する必要があります。
-
-![shared_label](./pics/shared_label.png)
 
 作成したPod, app:ce-clientのにGoogle-DNSへのアクセスを拒否します
 

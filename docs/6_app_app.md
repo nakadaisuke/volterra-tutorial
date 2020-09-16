@@ -28,7 +28,6 @@ pref-tokyo
 apiVersion: apps/v1
 metadata:
   name: app-client
-  namespace: app-app
   annotations:
     ves.io/virtual-sites: app-app/pref-tokyo
 spec:
@@ -52,7 +51,6 @@ pref-osaka
 apiVersion: apps/v1
 metadata:
   name: osaka-app
-  namespace: app-app
   annotations:
     ves.io/virtual-sites: app-app/pref-osaka
 spec:
@@ -82,7 +80,6 @@ vk8sにVirtual-site:`pref-osaka`にserviceを作成します
 kind: Service
 metadata:
   name: osaka-app
-  namespace: app-app
   labels:
     app: osaka-app
   annotations:

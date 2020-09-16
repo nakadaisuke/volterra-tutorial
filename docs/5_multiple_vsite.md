@@ -49,7 +49,6 @@ pref-tokyo
 apiVersion: apps/v1
 metadata:
   name: tokyo-app
-  namespace: multi-sites
   annotations:
     ves.io/virtual-sites: multi-sites/pref-tokyo
 spec:
@@ -75,7 +74,6 @@ pref-osaka
 apiVersion: apps/v1
 metadata:
   name: osaka-app
-  namespace: multi-sites
   annotations:
     ves.io/virtual-sites: multi-sites/pref-osaka
 spec:
@@ -107,7 +105,6 @@ pref-tokyo
 kind: Service
 metadata:
   name: tokyo-app
-  namespace: multi-sites
   labels:
     app: tokyo-app
   annotations:
@@ -127,7 +124,6 @@ pref-osaka
 kind: Service
 metadata:
   name: osaka-app
-  namespace: multi-sites
   labels:
     app: osaka-app
   annotations:

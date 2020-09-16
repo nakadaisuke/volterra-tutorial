@@ -48,9 +48,8 @@ ce-client
 apiVersion: apps/v1
 metadata:
   name: ce-client
-  namespace: security
   annotations:
-    ves.io/virtual-sites: security/vsite-adc
+    ves.io/virtual-sites: security/pref-tokyo
 spec:
   replicas: 1
   selector:
@@ -70,9 +69,8 @@ spec:
 apiVersion: apps/v1
 metadata:
   name: ce-other
-  namespace: security
   annotations:
-    ves.io/virtual-sites: security/vsite-adc
+    ves.io/virtual-sites: security/pref-tokyo
 spec:
   replicas: 1
   selector:
@@ -92,7 +90,8 @@ spec:
 
 ![network_policy_block1](./pics/network_policy_block1.png)
 
-Network Policy Ruleを2つ作成します。
+Security
+vK8s Network PolicyからNetwork Policy Ruleを2つ作成します。
 
 - allow-any
     Action: Allow

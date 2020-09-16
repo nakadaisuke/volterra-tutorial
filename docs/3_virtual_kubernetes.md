@@ -48,7 +48,6 @@ Applications -> Virtual k8sより`Add Virtual K8s`を選択します。Nameを�
 kind: Deployment
 metadata:
   name: nginx-deployment
-  namespace: trial
 spec:
   selector:
     matchLabels:
@@ -77,7 +76,6 @@ spec:
 kind: Service
 metadata:
   name: nginx
-  namespace: trial
   labels:
     app: nginx
 spec:

@@ -37,7 +37,6 @@ allow-server
 apiVersion: apps/v1
 metadata:
   name: allow-server
-  namespace: security
   annotations:
     ves.io/virtual-sites: security/vsite-adc
 spec:
@@ -61,7 +60,6 @@ deny-server
 apiVersion: apps/v1
 metadata:
   name: deny-server
-  namespace: security
   annotations:
     ves.io/virtual-sites: security/vsite-adc
 spec:
@@ -87,7 +85,6 @@ allow-server
 apiVersion: v1
 metadata:
   name: allow-server
-  namespace: security
   annotations:
     ves.io/virtual-sites: security/vsite-adc
 spec:
@@ -106,7 +103,6 @@ deny-server
 apiVersion: v1
 metadata:
   name: deny-server
-  namespace: security
   annotations:
     ves.io/virtual-sites: security/vsite-adc
 spec:

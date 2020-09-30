@@ -88,3 +88,22 @@ spec:
 ```
 
 ![vk8s_service](./pics/vk8s_service.png)
+
+## Kubectlからのアクセス
+
+kubectlで使用するkubeconfigはユーザーNamespaceのVirtual K8sからダウンロードします。
+
+Applications -> Virtual k8sの作成済みvk8sの`・・・`から`Kubeconfig`を選択し、Kubecofigの期限を設定します。
+
+![kubeconfig1](./pics/kubeconfig1.png)
+
+`Downlaod Credential`をクリックするとKubeconfigがダウンロードされます。
+
+![kubeconfig2](./pics/kubeconfig2.png)
+
+kubectlを使用し、vk8sにアクセスします。
+
+```kubectl --kubeconfig ~/Downloads/ves_trial_vk8s.yaml get deployment
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   0/1     0            0           9s
+```

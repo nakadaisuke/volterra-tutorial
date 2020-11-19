@@ -28,7 +28,16 @@ Service Policy RuleでClinetの条件を作成し、Service PolicyでServerに�
 
 #### Kubenretesの設定
 
-namespaceは`seurity`とし、virtual-siteは`vsite-adc`を作成します。
+shared namespaceで known keyを作成します。
+
+Label key: `app`
+
+label value:
+
+- `allow-server`
+- `deny-server`
+
+namespaceは`seurity`とし、virtual-siteは`pref-tokyo`を作成します。
 ラベルが異なる2つのPod, app:allow-serverとapp:deny-serverを作成します。
 
 allow-server
@@ -38,7 +47,7 @@ apiVersion: apps/v1
 metadata:
   name: allow-server
   annotations:
-    ves.io/virtual-sites: security/vsite-adc
+    ves.io/virtual-sites: security/pref-tokyo
 spec:
   replicas: 1
   selector:
@@ -50,7 +59,7 @@ spec:
         app: allow-server
     spec:
       containers:
-        - name: ce-client
+        - name: allow-server
           image: dnakajima/inbound-app:2.0
 ```
 
@@ -61,7 +70,7 @@ apiVersion: apps/v1
 metadata:
   name: deny-server
   annotations:
-    ves.io/virtual-sites: security/vsite-adc
+    ves.io/virtual-sites: security/pref-tokyo
 spec:
   replicas: 1
   selector:
@@ -73,7 +82,7 @@ spec:
         app: deny-server
     spec:
       containers:
-        - name: ce-client
+        - name: deny-server
           image: dnakajima/inbound-app:2.0
 ```
 
@@ -86,7 +95,7 @@ apiVersion: v1
 metadata:
   name: allow-server
   annotations:
-    ves.io/virtual-sites: security/vsite-adc
+    ves.io/virtual-sites: security/pref-tokyo
 spec:
   ports:
     - protocol: TCP
@@ -104,7 +113,7 @@ apiVersion: v1
 metadata:
   name: deny-server
   annotations:
-    ves.io/virtual-sites: security/vsite-adc
+    ves.io/virtual-sites: security/pref-tokyo
 spec:
   ports:
     - protocol: TCP
@@ -125,23 +134,40 @@ spec:
     - Select Type of Origin Server: `k8sService - Name of Origin Ser...`
     - Service Name: `allow-server.security` (”Kubernetes service名 . namespace”)
     - Select Site or Virtual Site: `Virtual Site`
-    - Virtual Site: `vsite-adc`。
+    - Virtual Site: `pref-tokyo`。
     - Select Network on the Site: `Vk8s Networks on Site`
   - Port: `80`
 
 ![service_policy5](./pics/service_policy5.png)
 
+- Origin server
+  - Name: `deny-server`
+  - Basic Configuration:
+    - Select Type of Origin Server: `k8sService - Name of Origin Ser...`
+    - Service Name: `deny-server.security` (”Kubernetes service名 . namespace”)
+    - Select Site or Virtual Site: `Virtual Site`
+    - Virtual Site: `pref-tokyo`。
+    - Select Network on the Site: `Vk8s Networks on Site`
+  - Port: `80`
+
 #### HTTP Load Balancerの設定
 
 Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
 
-- Name: `nginx-lb`
+- Name: `allow-server-lb`
 - Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
 - Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
 
-設定するとDNS infoにVolterraからdomain名が払い出されます。作成したロードヴァランダーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
+設定するとDNS infoにVolterraからdomain名が払い出されます。作成したロードバランサーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
 外部から設定したドメインにアクセスするとNginxのWebUIが表示されます。
+
+同様にDeny server用のロードバランサーも作成します。
+
+- Name: `deny-server-lb`
+- Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Select Type of Load Balancer: `HTTP`
+- Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
 
 #### サービスへの接続確認
 
@@ -154,37 +180,39 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 
 #### Service policyの作成
 
-Service Policy Ruleを2つ作成します。
-
-- deny-web-server
-  - Action: `Deny`
-  - HTTP Path: `Prefix Values : /deny`
-
-- allow-any-server
-  - Action: `Allow`
+Service Policy を2つ作成します。
 
 ![adc_deny_4](./pics/adc_deny_4.png)
 ![adc_deny_5](./pics/adc_deny_5.png)
 
-Service Policy を2つ作成します。
+deny-server
 
-- deny-web-server
-  - Server Label Selector: `app:in(deny-server)`
-  - Rule Combining Algorithm: `First Rule Match`
-  - Select rule: `deny-web-server`
+- deny-server
+  - Server Selection: `Group of Servers by Label Selector`
+    - Selector Expression: `app:in(deny-server)`
+  - Rules: `deny-deny-server`, `allow-deny-server`
 
-- allow-any-server
-  - Rule Combining Algorithm: `First Rule Match`
-  - Select rule: `allow-any-server`
+Rules
 
-![adc_deny_6](./pics/adc_deny_6.png)
+- deny-deny-server
+  - Action: `Deny`
+  - HTTP Path: `Prefix Values : /deny`
+
+- allow-deny-server
+  - Action: `Allow`
+
+allow-server
+
+- allow-server
+  - Server Selection: `Any Server`
+  - Select rule: `allow-allow-server`
 
 Service Policy SetにService Policyを追加します
 
-- po-set1
-  - Policies: Select policy: `[1: deny-web-server, 2:allow-any-server]`
+![adc_deny_6](./pics/adc_deny_6.png)
 
-![adc_deny_7](./pics/adc_deny_7.png)
+- service-policy-set1
+  - Policies: Select policy: `[1: deny-server, 2:allow-server]`
 
 #### 設定の確認
 
@@ -193,7 +221,7 @@ deny-web-serverの<http://url/>,<http://url/allow/> は正常に表示されま�
 
 ![adc_deny_1](./pics/adc_deny_1.png)
 ![adc_deny_2](./pics/adc_deny_2.png)
-![adc_deny_8](./pics/adc_deny_8.png)
+![adc_deny_7](./pics/adc_deny_7.png)
 
 作成したサービスにアクセスできることを確認します。
 allow-web-serverの<http://url/>,<http://url/allow/> ,<http://url/deny>,  はアクセスが可能です。

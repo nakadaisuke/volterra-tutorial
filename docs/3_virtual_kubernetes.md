@@ -107,3 +107,7 @@ kubectlを使用し、vk8sにアクセスします。
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-deployment   0/1     0            0           9s
 ```
+
+Kubeconfigなどの最大日数は General -> Tenant Settings -> Tenant Overview -> Credential Expiry Policy で最大365日まで変更できます。
+
+![expiredate](./pics/expiredate.png)

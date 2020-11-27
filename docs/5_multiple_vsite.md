@@ -148,18 +148,18 @@ spec:
 作成したワークロードをそれぞれ`tokyo-app`と`osaka-app`としてOrigin-poolに登録します。
 
 - Name: `tokyo-app`
-- Select Type of Origin Server: `k8sService Name of Origin Ser...`
-- Service Name: `tokyo-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
-- Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-tokyo`
-- Select Network on the Site: `Vk8s Networks on Site`
-- Port: `8080`
+  - Select Type of Origin Server: `k8sService Name of Origin Ser...`
+  - Service Name: `tokyo-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-tokyo`
+  - Select Network on the Site: `Vk8s Networks on Site`
+  - Port: `8080`
 
 - Name: `osaka-app`
-- Select Type of Origin Server: `k8sService Name of Origin Ser...`
-- Service Name: `osaka-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
-- Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-osaka`
-- Select Network on the Site: `Vk8s Networks on Site`
-- Port: `8080`
+  - Select Type of Origin Server: `k8sService Name of Origin Ser...`
+  - Service Name: `osaka-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-osaka`
+  - Select Network on the Site: `Vk8s Networks on Site`
+  - Port: `8080`
 
 ![origin_multi_vsite1](./pics/origin_multi_vsite1.png)
 ![origin_multi_vsite2](./pics/origin_multi_vsite2.png)

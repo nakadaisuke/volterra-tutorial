@@ -8,7 +8,7 @@ Ingress GatewayはHTTP/TCP loadbalancerとして動作します。Loadlabancer�
 
 ## Origin poolの作成
 
-Virtual Kubernetesの設定で作成したNginxを外部からアクセスできるようにIngress Gatewayを設定します。作成したNginx ServiceをOrigin poolとして登録します。 Manage -> Origin Pools で `Add Origin Pool`を選択します。
+Virtual Kubernetesの設定で作成したNginxを外部からアクセスできるようにIngress Gatewayを設定します。作成したNginx ServiceをOrigin poolとして登録します。 Manage -> Loab Balancers -> Origin Pools で `Add Origin Pool`を選択します。
 
 以下の設定をします
 
@@ -25,14 +25,14 @@ Virtual Kubernetesの設定で作成したNginxを外部からアクセスでき
 
 ### HTTP load balancerの設定
 
-Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+Manage -> Loab Balancers -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
 
 - Name: `nginx-lb`
 - Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
 - Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
 
-設定するとDNS infoにVolterraからdomain名が払い出されます。作成したロードヴァランダーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
+設定するとDNS infoにVolterraからdomain名が払い出されます。作成したロードバランサーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
 外部から設定したドメインにアクセスするとNginxのWebUIが表示されます。
 
 ![ingress_config1](./pics/ingress_config1.png)

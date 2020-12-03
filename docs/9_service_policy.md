@@ -96,6 +96,8 @@ metadata:
   name: allow-server
   annotations:
     ves.io/virtual-sites: security/pref-tokyo
+  labels:
+    app: allow-server
 spec:
   ports:
     - protocol: TCP
@@ -114,6 +116,8 @@ metadata:
   name: deny-server
   annotations:
     ves.io/virtual-sites: security/pref-tokyo
+  labels:
+    app: deny-server
 spec:
   ports:
     - protocol: TCP

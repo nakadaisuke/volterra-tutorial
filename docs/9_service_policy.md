@@ -96,8 +96,6 @@ metadata:
   name: allow-server
   annotations:
     ves.io/virtual-sites: security/pref-tokyo
-  labels:
-    app: allow-server
 spec:
   ports:
     - protocol: TCP
@@ -156,9 +154,11 @@ spec:
 
 #### HTTP Load Balancerの設定
 
+Load BalancerにService PolicyでのLabelセレクトはHTTP/TCP Load BalancerのLabelsのラベルで行います。
 Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
 
 - Name: `allow-server-lb`
+- Labels: `app: allow-server`
 - Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
 - Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
@@ -169,6 +169,7 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 同様にDeny server用のロードバランサーも作成します。
 
 - Name: `deny-server-lb`
+- Labels: `app: deny-server`
 - Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
 - Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
@@ -229,3 +230,56 @@ deny-web-serverの<http://url/>,<http://url/allow/> は正常に表示されま�
 
 作成したサービスにアクセスできることを確認します。
 allow-web-serverの<http://url/>,<http://url/allow/> ,<http://url/deny>,  はアクセスが可能です。
+
+#### Kubernetes ServiceへのService Policy適用
+
+VolterrではKubernetesのServiceのタイプが`HTTP_PROXY`, `TCP_PROXY`, `TCP_PROXY_WITH_SNI`の3種類があり、デフォルトは`TCP_PROXY`です。
+TCP ProxyではHTTPベースのフィルタはかからないため、Kubernetes ServiceのマニフェストにHTTP_PROXYを有効にするannotation｀ves.io/proxy-type｀を設定します。
+
+上記で作成したManifestを以下のように変更します。
+
+```kind: Service
+apiVersion: v1
+metadata:
+  name: deny-server
+  annotations:
+    ves.io/proxy-type: HTTP_PROXY
+    ves.io/virtual-sites: security/pref-tokyo
+  labels:
+    app: deny-server
+spec:
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  selector:
+    app: deny-server
+  type: ClusterIP
+```
+
+また、Serivceに接続するクライアントを立ち上げます。
+
+```kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: app-client
+  annotations:
+    ves.io/virtual-sites: security/pref-tokyo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-client
+  template:
+    metadata:
+      labels:
+        app: app-client
+    spec:
+      containers:
+        - name: app-client
+          image: dnakajima/netutils:1.3
+```
+
+app-clientから`curl -v deny-server/deny/`を実行すると403エラーが返ってることが確認できます。
+
+![adc_deny_7](./pics/adc_deny_8.png)

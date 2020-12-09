@@ -27,7 +27,7 @@ Site Selecter Expression: `pref:tokyo`
 
 - Freeユーザーの場合は既存のNamespaceを先に削除してから作成してください。
 
-shared namespaceで known keyを作成します。(Option)
+shared namespaceで known keyを作成します。
 
 Label key: `app`
 

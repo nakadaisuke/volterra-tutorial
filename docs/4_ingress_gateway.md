@@ -13,7 +13,7 @@ Virtual Kubernetesの設定で作成したNginxを外部からアクセスでき
 以下の設定をします
 
 - Name: `nginx-endpoint`
-- Select Type of Origin Server: `k8sService Name of Origin Ser...`
+- Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
 - Service Name: `nginx.namespace`を入力します。 (`kubernetes service名.namespace`のフォーマット）
 - Select Site or Virtual Site: `Virtual Site` -> `namespace/pref-tokyo`
 - Select Network on the Site: `Vk8s Networks on Site`
@@ -66,7 +66,8 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 
 ローカルDNSがない場合は/etc/hostsに設定したドメイン名とエッジノードのIPアドレスを入力するか、Curlで -H “Host: domain name”で確認します。
 
-```curl http://192.168.2.197 -H "Host: localhost.com"
+```
+curl http://192.168.2.197 -H "Host: localhost.com"
 <!DOCTYPE html>
 <html>
 <head>
@@ -99,6 +100,7 @@ Commercial support is available at
 Nginxにアクセスできない場合、同一Virtual-siteにUbuntuなどのコンテナを立ち上げ、Service経由でNginxにアクセスできるか確認してください。
 
 Service経由でアクセスできる場合、Origin Poolが正常に稼働しているか確認してください。
-Origin poolの`Show Child Object`内のGlobal Satusが空欄の場合は、設定のService nameが間違っていたり、Virtual-siteが異なるサイトを指定している可能性があります。
+Origin poolの`Show Child Object`内のGlobal Satusが空欄の場合は、設定のService nameが間違っていたり、Virtual-siteが異なるサイトを指定している可能性があります。コンフィグに問題がない場合はサポートにケースオープンしてください。
+* 時間がかかる場合があるので、その場合はLoad balancerの設定後に再度確認してください。
 
 ![trouble_originpool](./pics/trouble_originpool.png)

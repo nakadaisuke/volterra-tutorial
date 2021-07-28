@@ -24,8 +24,9 @@ vk8sに2つのVirtual-site `pref-tokyo`と`pref-osaka`に、Deploymentを作成�
 
 pref-tokyo
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: app-client
   annotations:
@@ -47,8 +48,9 @@ spec:
 
 pref-osaka
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: osaka-app
   annotations:
@@ -76,7 +78,8 @@ spec:
 
 vk8sにVirtual-site:`pref-osaka`にserviceを作成します
 
-```apiVersion: v1
+```
+apiVersion: v1
 kind: Service
 metadata:
   name: osaka-app
@@ -102,7 +105,7 @@ spec:
 作成したosaka-appワークロードをOrigin-poolに登録します。
 
 - Name: `osaka-app`
-- Basic Configuration: ”Select Type of Origin Server”は`k8sService Name of Origin Ser...`を選択します。
+- Basic Configuration: ”Select Type of Origin Server”は`k8sService Name of Origin Server on given Sites`を選択します。
 - Service Name: `osaka-app.app-app`
 - Select Site or Virtual Site: `Virtual Site`を選択し、`app-app/pref-osaka`を指定します。
 - Select Network on the Site: `Vk8s Networks on Site`を指定します。
@@ -115,14 +118,14 @@ spec:
 HTTP loadbalancerを作成し、Origin poolを設定します。
 ここで設定したdomain名(osaka-app-1)はk8s上のpodに登録され、Podがリモートサービスに接続するのに使用します。
 
-Name: `osaka-app-lb`
-Domains: `osaka-app-1`
-Select Type of Load Balancer: `http`
-Default Origin Servers: `app-app/osaka-app`
-VIP Configuration: VIP Configuration を有効化し、`Advertise Custom` を選択しConfigureを選択
-Select Where to Advertise: `virtual-site`
-Site Network: `Inside and Outside Network`
-Virtual Site Reference: `app-app/pref-tokyo`
+- Name: `osaka-app-lb`
+- Domains: `osaka-app-1`
+- Select Type of Load Balancer: `http`
+- Default Origin Servers: `app-app/osaka-app`
+- VIP Configuration: VIP Configuration を有効化し、`Advertise Custom` を選択しConfigureを選択
+- Select Where to Advertise: `virtual-site`
+- Site Network: `vK8s Service Network`
+- Virtual Site Reference: `app-app/pref-tokyo`
 
 ![app_app_http_lb1](./pics/http_lb1.png)
 ![app_app_http_lb2](./pics/http_lb2.png)

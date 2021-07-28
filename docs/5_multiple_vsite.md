@@ -45,8 +45,9 @@ vk8sに2つのVirtual-site `pref-tokyo`と`pref-osaka`に、Deploymentを作成�
 
 pref-tokyo
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: tokyo-app
   annotations:
@@ -70,8 +71,9 @@ spec:
 
 pref-osaka
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: osaka-app
   annotations:
@@ -101,7 +103,8 @@ vk8sに2つのVirtual-site `pref-tokyo`と`pref-osaka`に、Serviceを作成し�
 
 pref-tokyo
 
-```apiVersion: v1
+```
+apiVersion: v1
 kind: Service
 metadata:
   name: tokyo-app
@@ -120,7 +123,8 @@ spec:
 
 pref-osaka
 
-```apiVersion: v1
+```
+apiVersion: v1
 kind: Service
 metadata:
   name: osaka-app
@@ -147,15 +151,14 @@ spec:
 
 作成したワークロードをそれぞれ`tokyo-app`と`osaka-app`としてOrigin-poolに登録します。
 
-- Name: `tokyo-app`
-  - Select Type of Origin Server: `k8sService Name of Origin Ser...`
+- Name: `tokyo-app`  - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
   - Service Name: `tokyo-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
   - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-tokyo`
   - Select Network on the Site: `Vk8s Networks on Site`
   - Port: `8080`
 
 - Name: `osaka-app`
-  - Select Type of Origin Server: `k8sService Name of Origin Ser...`
+  - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
   - Service Name: `osaka-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
   - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-osaka`
   - Select Network on the Site: `Vk8s Networks on Site`
@@ -179,7 +182,8 @@ Weightは100,100にしていますが、比率を変えることで、ローバ�
 
 Curlなどで確認すると、tokyo-app, osaka-appでロードバランスされることが確認できます。
 
-```curl http://ves-io-3b89b61f-b82b-4140-915a-96f56818fd56.ac.vh.ves.io/
+```
+curl http://ves-io-3b89b61f-b82b-4140-915a-96f56818fd56.ac.vh.ves.io/
 <html>
 <body>
 This pod is running on tokyo-app-767948955-jpbnx

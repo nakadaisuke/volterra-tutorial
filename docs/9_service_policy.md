@@ -29,10 +29,11 @@ Service Policy RuleでClinetの条件を作成し、Service PolicyでServerに�
 #### Kubenretesの設定
 
 shared namespaceで known keyを作成します。
+Free テナントの場合、既存のLabelを削除してから作成してください。
 
 Label key: `app`
 
-label value:
+Label value:
 
 - `allow-server`
 - `deny-server`
@@ -42,8 +43,9 @@ namespaceは`seurity`とし、virtual-siteは`pref-tokyo`を作成します。
 
 allow-server
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: allow-server
   annotations:
@@ -60,13 +62,14 @@ spec:
     spec:
       containers:
         - name: allow-server
-          image: dnakajima/inbound-app:2.0
+          image: dnakajima/inbound-app:3.0
 ```
 
 deny-server
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: deny-server
   annotations:
@@ -83,15 +86,16 @@ spec:
     spec:
       containers:
         - name: deny-server
-          image: dnakajima/inbound-app:2.0
+          image: dnakajima/inbound-app:3.0
 ```
 
 作成したPodに対応する2つのservice, を作成します。
 
 allow-server
 
-```kind: Service
+```
 apiVersion: v1
+kind: Service
 metadata:
   name: allow-server
   annotations:
@@ -108,8 +112,9 @@ spec:
 
 deny-server
 
-```kind: Service
+```
 apiVersion: v1
+kind: Service
 metadata:
   name: deny-server
   annotations:
@@ -133,24 +138,24 @@ spec:
 - Origin server
   - Name: `allow-server`
   - Basic Configuration:
-    - Select Type of Origin Server: `k8sService - Name of Origin Ser...`
+    - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
     - Service Name: `allow-server.security` (”Kubernetes service名 . namespace”)
     - Select Site or Virtual Site: `Virtual Site`
     - Virtual Site: `pref-tokyo`。
     - Select Network on the Site: `Vk8s Networks on Site`
   - Port: `80`
 
-![service_policy5](./pics/service_policy5.png)
-
 - Origin server
   - Name: `deny-server`
   - Basic Configuration:
-    - Select Type of Origin Server: `k8sService - Name of Origin Ser...`
+    - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
     - Service Name: `deny-server.security` (”Kubernetes service名 . namespace”)
     - Select Site or Virtual Site: `Virtual Site`
     - Virtual Site: `pref-tokyo`。
     - Select Network on the Site: `Vk8s Networks on Site`
   - Port: `80`
+
+![service_policy5](./pics/service_policy5.png)
 
 #### HTTP Load Balancerの設定
 
@@ -161,7 +166,7 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 - Labels: `app: allow-server`
 - Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
-- Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
+- Default Route Origin Pools: `security/allow-server` (上記で作成したOrigin pool)
 
 設定するとDNS infoにVolterraからdomain名が払い出されます。作成したロードバランサーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
 外部から設定したドメインにアクセスするとNginxのWebUIが表示されます。
@@ -172,7 +177,7 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 - Labels: `app: deny-server`
 - Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
-- Default Route Origin Pools: `namespace/nginx-endpoint` (上記で作成したOrigin pool)
+- Default Route Origin Pools: `security/deny-server` (上記で作成したOrigin pool)
 
 #### サービスへの接続確認
 
@@ -185,39 +190,47 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 
 #### Service policyの作成
 
-Service Policy を2つ作成します。
+作成したdeny-serverの`/deny`へのアクセスを拒否します。
+作成手順は以下となります。
+1. 全ての津神を許可するルールの作成
+2. deny-serverの`/deny`を拒否するルールの作成
+3. ルールの適用
 
-![adc_deny_4](./pics/adc_deny_4.png)
-![adc_deny_5](./pics/adc_deny_5.png)
+1. 暗黙のDenyがあるため、全てを許可するポリシーを作成します。
 
-deny-server
-
-- deny-server
-  - Server Selection: `Group of Servers by Label Selector`
-    - Selector Expression: `app:in(deny-server)`
-  - Rules: `deny-deny-server`, `allow-deny-server`
-
-Rules
-
-- deny-deny-server
-  - Action: `Deny`
-  - HTTP Path: `Prefix Values : /deny`
-
-- allow-deny-server
-  - Action: `Allow`
-
-allow-server
-
-- allow-server
+- name: `allow-any`
   - Server Selection: `Any Server`
-  - Select rule: `allow-allow-server`
+  - Select Policy Rules: `Allow All Requests`
 
-Service Policy SetにService Policyを追加します
+2. deny-serverの`/deny`を拒否するルールの作成
 
-![adc_deny_6](./pics/adc_deny_6.png)
+- name: `deny-server`
+  - Server Selection: `Group of Servers by Label Selector`
+    - Selector Expression: `app: in (deny-server)`
+  - Select Policy Rules: `Custom Rule List`
+    - Rules
+      - Name: deny-rule1 (Rule1)
+        - Rule Specification
+          - Action: `Deny`
+          - Client Selection: `Any Client`
+          - HTTP Method.Method List: `ANY`
+          - HTTP Path: `Prefix Values : /deny`
+      - Name: allow-others (Rule2)
+        - Rule Specification
+          - Action: `Allow`
+          - Client Selection: `Any Client`
+
+![adc_deny_3](./pics/adc_deny_4.png)
+![adc_deny_3](./pics/adc_deny_5.png)
+
+3. ルールの適用
+
+Active Service PoliciesにService Policyを追加します
 
 - service-policy-set1
   - Policies: Select policy: `[1: deny-server, 2:allow-server]`
+
+![adc_deny_6](./pics/adc_deny_6.png)
 
 #### 設定の確認
 
@@ -231,15 +244,21 @@ deny-web-serverの<http://url/>,<http://url/allow/> は正常に表示されま�
 作成したサービスにアクセスできることを確認します。
 allow-web-serverの<http://url/>,<http://url/allow/> ,<http://url/deny>,  はアクセスが可能です。
 
+System -> Site Securityよりフィルターにヒットしたログを確認できます。 ログには送信元のPod名や送信先のIPアドレスやプロトコル、ヒットしたポリシーなどが表示されます。
+
+![adc_deny_7](./pics/adc_deny_chk.png)
+
 #### Kubernetes ServiceへのService Policy適用
 
 VolterrではKubernetesのServiceのタイプが`HTTP_PROXY`, `TCP_PROXY`, `TCP_PROXY_WITH_SNI`の3種類があり、デフォルトは`TCP_PROXY`です。
 TCP ProxyではHTTPベースのフィルタはかからないため、Kubernetes ServiceのマニフェストにHTTP_PROXYを有効にするannotation｀ves.io/proxy-type｀を設定します。
+Freeアカウントでは`app-client`を建てられないため、allow-serverを削除してからマニフェストを追加してください。
 
 上記で作成したManifestを以下のように変更します。
 
-```kind: Service
+```
 apiVersion: v1
+kind: Service
 metadata:
   name: deny-server
   annotations:
@@ -259,8 +278,9 @@ spec:
 
 また、Serivceに接続するクライアントを立ち上げます。
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: app-client
   annotations:

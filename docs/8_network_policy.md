@@ -1,18 +1,18 @@
 # Network policy
 
 Network PolicyはL3-L4のIngress/Egressのセキュリティを提供します。
-Remote EndpointからLocal Endpointに入ってくるトラフィックをIngress、Local EndpintからRemote Endpointに出ていくトラフィックをEgressとなります。
-例えば以下の場合、Remote Endpointは(8.8.8.8/32, 8.8.4.4/32)となり、Local Endpointは app:webが設定されたPodとなります。
+Endpointに入ってくるトラフィックをIngress Ruleで設定し、Endpointから出ていくトラフィックをEgress Ruleで設定します。
+このポリシーはステートフルに動作するため、Egress Ruleで許可したトラフィックの戻り通信をIngress Ruleで設定する必要はありません。
 
 ![network_policy1](./pics/network_policy1.png)
 
-以下の場合、Remote Endpointはapp:dbが設定されたPodとなり、Local Endpointは app:webが設定されたPodとなります。
+同一Namespace内の通信も同様で、Endpointに入ってくるトラフィックをIngress Ruleで設定し、Endpointから出ていくトラフィックをEgress Ruleで設定します。
 
 ![network_policy2](./pics/network_policy2.png)
 
 ## Network policyの構造
 
-コンフィグNetrowk Policy RuleでRemote endpointの条件を作成し、Network PolicyでLocal Endpointに対してNetwork Policy Ruleを適用します。Network Policy SetでNetwork Policy RuleをNamespaceに対して適用します。
+コンフィグは`Netrowk Policy` でIngress/Egressの条件を作成し、`Active Network Policies`でNetwork Policy RuleをNamespaceに対して適用します。
 
 ![network_policy3](./pics/network_policy3.png)
 
@@ -43,8 +43,9 @@ label value:
 
 deny-client
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: deny-client
   annotations:
@@ -64,8 +65,11 @@ spec:
           image: dnakajima/netutils:1.3
 ```
 
-```kind: Deployment
+allow-client
+
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: allow-client
   annotations:
@@ -85,69 +89,68 @@ spec:
           image: dnakajima/netutils:1.3
 ```
 
-作成したPod, app:deny-clientのにGoogle-DNSへのアクセスを拒否します。
+作成したPod, deny-clientのにGoogle-DNSへのアクセスを拒否します。
+作成手順は以下となります。
+1. すべてを許可するルールの作成
+2. Google-DNSを拒否するルールの作成
+3. ルールの適用
+
 
 ![network_policy_same_node](./pics/network_policy_same_node.png)
 
-Deny client用のNetwork Policyを作成し、Ingress RulesとEgress Rulesを作成します。
 
-- deny-client-po
-  - Local Endpoint: Label Selector
-  - Selector Expression: app:in(deny-client)
+1. 暗黙のDenyがあるため、全てを許可するポリシーを作成します。
 
-- Ingress Rules:
-  - allow-deny-client-po-ingress
-- Egress Rules:
-  - deny-deny-client-po-egress
-  - allow-deny-client-po-egress
+ルールは`Add network policy`から作成します。
 
-ルールは`Add network policy rule`から作成します。
+- name: `allow-any`
+  - Policy For Endpoints
+    - Endpint(s): `Any Endpoints`
+  - Ingress Rules
+    - Name: `allow-any-ingress`
+    - Action: `Allow`
+    - Select Other Endpoint: `Any Endpoint`
+    - Select Type of Traffic to Match: `Match All Traffic`
+  - Egress Rules:
+    - Name: `allow-any-egress`
+    - Action: `Allow`
+    - Select Other Endpoint: `Any Endpoint`
+    - Select Type of Traffic to Match: `Match All Traffic`
 
 ![network_policy_block1](./pics/network_policy_block1.png)
 
 ![network_policy_block2](./pics/network_policy_block2.png)
 
-Ingress Rules
+2. Google-DNSを拒否するルールを作成します。
 
-- allow-deny-client-po-ingress
-    Action: Allow
+- name: `deny-client`
+  - Policy For Endpoints
+    - Endpint(s): `Label Selector`
+      - Selector Expression: `app:in (deny-client)`
+  - Ingress Rules
+    - Name: `allow-any-ingress`
+    - Action: `Allow`
+    - Select Other Endpoint: `Any Endpoint`
+    - Select Type of Traffic to Match: `Match All Traffic`
+  - Egress Rules: (Rule-1)
+    - Name: `deny-destination`
+    - Action: `Deny`
+    - Logging Action: `Log` # Show Advanced Fieldsを有効にすると表示されます。Logを有効にすると Site Security でログが表示されます。
+    - Select Other Endpoint: `IPv4 Prefix List`
+      - IPv4 Prefix List: `8.8.4.4/32` `8.8.8.8/32`
+    - Select Type of Traffic to Match: `Match All Traffic`
+  - Egress Rules: (Rule-2)
+    - Name: `allow-others`
+    - Action: `Allow`
+    - Logging Action: `Do Not Log`
+    - Select Other Endpoint: `Any Endpoint`
+    - Select Type of Traffic to Match: `Match All Traffic`
 
-    (** 暗黙のDenyがあるため、設定しないとすべての通信が拒否される）
+3. 作成したルールを適用します。
 
-Egress Rules
+Active Network Policies から作成したポリシーを選択し、適用します。1から順番にポリシーが評価されるため、個別のポリシー設定が若番に来るように設定します。
 
-- deny-deny-client-po-egress
-    Action: Deny
-
-    Remote Endpoint: IP Prefix: Prefix [8.8.8.8/32, 8.8.4.4/32]
-
-- allow-deny-client-po-egress
-    Action: Allow
-
- Allow client用のNetwork Policyを作成し、Ingress RulesとEgress Rulesを作成します。
-
-- allow-client-po
-  - Local Endpoint: Prefix
-
-- Ingress Rules:
-  - allow-allow-client-po-ingress
-- Egress Rules:
-  - allow-allow-client-po-egress
-
-Ingress Rules
-
-- allow-allow-client-po-ingress
-    Action: Allow
-
-Egress Rules
-
-- allow-allow-client-po-egress
-    Action: Allow
-
-Network Policy Setを作成します。
-
-- po-set1
-  - Policies: Select policy: [1: deny-client-po, 2: allow-client-po]
+  -  Active Network Policies: [1: deny-client, 2: allow-client]
 
 ![network_policy_block3](./pics/network_policy_block3.png)
 
@@ -159,23 +162,29 @@ Network Policy Setを作成します。
 
 - kubeconfigをダウンロードし、kubectlで接続することも可能です。
 
+deny-clientはgoogle-dnsのポリシーがかかっているため8.8.8.8にはpingできませんが、allow-clientはpingできることが確認できます。
+
 ![network_policy_block6](./pics/network_policy_block6.png)
 
-deny-clientはgoogle-dnsのポリシーがかかっているため8.8.8.8にはpingできませんが、allow-clientはpingできることが確認できます。
+System -> Site Securityよりフィルターにヒットしたログを確認できます。
+ログには送信元のPod名や送信先のIPアドレスやプロトコル、ヒットしたポリシーなどが表示されます。
 
 ![network_policy_block7](./pics/network_policy_block7.png)
 
 ### 同一Kubernetes Clouster内での通信制御
 
-server-appを追加で作成します。
-app:deny-client からのみapp:server-appへの通信を許可し、 app:ce-otherは拒否します
+server-appを追加で作成します。Shared namespaceのApp labelにも`server-app`をKeyとして追加してください。
+
+ここではapp:allow-client からのみapp:server-appへの通信を許可し、 app:deny-clientからの通信は拒否します
+Freeでは3つ以上のDeplyomentが作成できないため、これ以降は Individual以上のテナント契約が必要です。
 
 ![network_policy_same_node1](./pics/network_policy_same_node1.png)
 
 app:webのPodとServiceを作成します。
 
-```kind: Deployment
+```
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: server-app
   annotations:
@@ -198,14 +207,15 @@ spec:
               protocol: TCP
 ```
 
-```kind: Service
+```
 apiVersion: v1
+kind: Service
 metadata:
   name: server-app
   labels:
     app: server-app
   annotations:
-    ves.io/virtual-sites: security/security/pref-tokyo
+    ves.io/virtual-sites: security/pref-tokyo
 spec:
   ports:
     - protocol: TCP
@@ -216,64 +226,57 @@ spec:
   type: ClusterIP
 ```
 
+1. 暗黙のDenyがあるため、全てを許可するポリシーを作成します。
+
+ルールは`Add network policy`から作成します。
+
+- name: `allow-any`
+  - Policy For Endpoints
+    - Endpint(s): `Any Endpoints`
+  - Ingress Rules
+    - Name: `allow-any-ingress`
+    - Action: `Allow`
+    - Select Other Endpoint: `Any Endpoint`
+    - Select Type of Traffic to Match: `Match All Traffic`
+  - Egress Rules:
+    - Name: `allow-any-egress`
+    - Action: `Allow`
+    - Select Other Endpoint: `Any Endpoint`
+    - Select Type of Traffic to Match: `Match All Traffic`
+
+2. deny-client用のルールを作成します。
+
+- name: `deny-client`
+  - Policy For Endpoints
+    - Endpint(s): `Label Selector`
+      - Selector Expression: `app:in (deny-client)`
+  - Ingress Rules
+    - Name: `allow-any-ingress`
+    - Action: `Allow`
+    - Select Other Endpoint: `Any Endpoint`
+    - Select Type of Traffic to Match: `Match All Traffic`
+  - Egress Rules: (Rule-1)
+    - Name: `deny-destination`
+    - Action: `Deny`
+    - Logging Action: `Log` # Show Advanced Fieldsを有効にすると表示されます。Logを有効にすると Site Security でログが表示されます。
+    - Select Other Endpoint: `Label Selector`
+      -  Selector Expression: `app:in (server-app)`
+    - Select Type of Traffic to Match: `Match All Traffic`
+  - Egress Rules: (Rule-2)
+    - Name: `allow-others`
+    - Action: `Allow`
+    - Logging Action: `Do Not Log`
+    - Select Other Endpoint: `Any Endpoint`
+    - Select Type of Traffic to Match: `Match All Traffic`
+
+
 Deny client用のNetwork Policyを作成し、Ingress RulesとEgress Rulesを作成します。
 
-- deny-client-po
-  - Local Endpoint: Label Selector
-  - Selector Expression: app:in(deny-client)
+3. 作成したルールを適用します。
 
-- Ingress Rules:
-  - allow-deny-client-po-ingress
-- Egress Rules:
-  - deny-deny-client-po-egress
-  - allow-deny-client-po-egress
+Active Network Policies から作成したポリシーを選択し、適用します。1から順番にポリシーが評価されるため、個別のポリシー設定が若番に来るように設定します。
 
-ルールは`Add network policy rule`から作成します。
-
-![network_policy_same_node2](./pics/network_policy_same_node2.png)
-
-Ingress Rules
-
-- allow-deny-client-po-ingress
-    Action: Allow
-
-    (** 暗黙のDenyがあるため、設定しないとすべての通信が拒否される）
-
-Egress Rules
-
-- deny-deny-client-po-egress
-    Action: Deny
-
-    Remote Endpoint: Label Selector
-  - Selector Expression: app:in(server-app)
-
-- allow-deny-client-po-egress
-    Action: Allow
-
- Allow client用のNetwork Policyを作成し、Ingress RulesとEgress Rulesを作成します。
-
-- allow-client-po
-  - Local Endpoint: Prefix
-
-- Ingress Rules:
-  - allow-allow-client-po-ingress
-- Egress Rules:
-  - allow-allow-client-po-egress
-
-Ingress Rules
-
-- allow-allow-client-po-ingress
-    Action: Allow
-
-Egress Rules
-
-- allow-allow-client-po-egress
-    Action: Allow
-
-Network Policy Setを作成します。
-
-- po-set1
-  - Policies: Select policy: [1: deny-client-po, 2: allow-client-po]
+  -  Active Network Policies: [1: deny-client, 2: allow-client]
 
 deny-clientはのポリシーがかかっているためserver-appにはcurlできませんが、allow-clientはcurlできることが確認できます。
 

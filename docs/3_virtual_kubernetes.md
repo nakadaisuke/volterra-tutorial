@@ -16,7 +16,7 @@ Generalの`My Namespaces`から、 `Add namespace`を開き、Namapace名を入�
 
 ## Virtual Siteの作成
 
-作成したNamespaceに移動し、Manage -> Virtual host ->Virtual sitesより `Add Virtual site`を選択します。
+作成したNamespaceに移動し、Manage -> Virtual sitesより `Add Virtual site`を選択します。
 nameに virtual-site名、Site TypeはCEを選択し、Site Selector ExpressionではSiteに設定したラベルを選択します。 Continueを選択するとVirtual siteが作成されます。
 
 以下の2つのVirutal siteを設定します。
@@ -44,7 +44,8 @@ Applications -> Virtual k8sより`Add Virtual K8s`を選択します。Nameを�
 
 下のようにDeploymentを設定すると、該当するSiteにコンテナが立ち上がります。
 
-```apiVersion: apps/v1
+```
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment
@@ -72,7 +73,8 @@ spec:
 `Add service`を選択するとYaml(json)を入力する画面が開きます。
 下のようにServiceを設定すると、該当するSiteにServiceが設定されます。
 
-```apiVersion: v1
+```
+apiVersion: v1
 kind: Service
 metadata:
   name: nginx
@@ -89,6 +91,10 @@ spec:
 
 ![vk8s_service](./pics/vk8s_service.png)
 
+`Endpoints`をクリックするとServiceが認識しているPodが表示されます。
+
+![vk8s_service_pod](./pics/vk8s_service_pod.png)
+
 ## Kubectlからのアクセス
 
 kubectlで使用するkubeconfigはユーザーNamespaceのVirtual K8sからダウンロードします。
@@ -103,7 +109,8 @@ Applications -> Virtual k8sの作成済みvk8sの`・・・`から`Kubeconfig`�
 
 kubectlを使用し、vk8sにアクセスします。
 
-```kubectl --kubeconfig ~/Downloads/ves_trial_vk8s.yaml get deployment
+```
+kubectl --kubeconfig ~/Downloads/ves_trial_vk8s.yaml get deployment
 NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-deployment   0/1     0            0           9s
 ```

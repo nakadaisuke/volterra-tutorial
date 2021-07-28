@@ -2,6 +2,7 @@
 
 WAFはHTTP Loadbalancer (virtual host) に設定します。
 一度Proxyで終端したトラフィックをWAFで精査し、ロ-ドバランサー経由で実際のアプリケーションに通信します。
+この機能はFreeテナントでは利用できません。
 
 ![waf](./pics/waf1.png)
 

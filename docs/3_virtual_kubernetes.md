@@ -92,7 +92,6 @@ spec:
 ```
 
 ![vk8s_service1](./pics/vk8s_service1.png)
-![vk8s_service2](./pics/vk8s_service2.png)
 
 `Endpoints`をクリックするとServiceが認識しているPodが表示されます。
 

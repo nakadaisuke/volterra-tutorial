@@ -65,7 +65,7 @@ DCSイメージではeth0/eth1のみ扱えるため、dellやHPEのイメージ�
 
 ## Tokenの設定
 
-DCP Nodeの設定にはTokeが必要です。
+DCS Nodeの設定にはTokeが必要です。
 ConsoleのCloud and Edge Sites > Site Management > Site TokensからTokenを発行してください。
 “Name” を入力し、”Add Site Token”をクリックし、Tokenを作成します。
 
@@ -85,7 +85,7 @@ DCS NodeにコンソールもしくはSSHで接続します。user/password = ad
 4. Latitude/Longtitude（緯度経度）は有効な数値を入力します。あとで変更が可能です。
 5. Certified hardwareはイメージによって異なりますが、シングルNICの場合はxxx-voltstack-combo　マルチNICの場合はxxx-multi-nic-voltstack-comboを選択してください。
 
-![dcp_cli](./pics/dcs_cli.png)
+![dcs_cli](./pics/dcs_cli.png)
 
 ### インターフェイスの設定
 
@@ -99,7 +99,7 @@ SiteLocalInside GW,DNS2 addressはオプションのため、空欄も可能で�
 
 WifiをOUTSIDEとして使用することも可能です。その場合はSSIDやPSKの設定を行います
 
-![dcp_interface](./pics/dcp_interface.png)
+![dcs_interface](./pics/dcs_interface.png)
 
 ## DCS Nodeの初期設定(WebUI)
 
@@ -121,7 +121,7 @@ Certified hardwareはイメージによって異なりますが、xxx-voltstack-
 
 ### DCS Nodeの登録
 
-初期設定を行い、インターネットに接続するとConsoleのSystem NamespaceにSiteとしてDCP Nodeが表示されます。
+初期設定を行い、インターネットに接続するとConsoleのSystem NamespaceにSiteとしてDCS Nodeが表示されます。
 サイトを選択し、AcceptするとDCS Nodeのセットアップが始まります。
 
 Multi Master nodeの場合、`cluster size`は`3`を選択します。

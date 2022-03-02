@@ -69,7 +69,6 @@ spec:
 ```
 
 ![vk8s_deplyoment1](./pics/vk8s_deployment1.png)
-![vk8s_deplyoment2](./pics/vk8s_deployment2.png)
 
 ## Serviceの作成
 

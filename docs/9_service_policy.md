@@ -1,20 +1,20 @@
 # Service Policy (Ingress Gateway)
 
 Ingress GatewayはHTTP ベースのセキュリティを提供します。
-外部からVolterra Nodeに入ってくるトラフィックをClient、Kubernetes ServiceをServerとなります。
+外部からDCS Nodeに入ってくるトラフィックをClient、Kubernetes ServiceがServerとなります。
 例えば以下の場合、外部ネットワーク(Any)となり、Kubernetes Serviceは app:webが設定されたServiceとなります。
 
-![service_policy1](./pics/service_policy1.png)
+![service_policy1](./pics/service_policy1.svg)
 
 以下の場合、Clientはapp:webが設定されたPodとなり、Serverは app:DBが設定されたServiceとなります。
 
-![service_policy2](./pics/service_policy2.png)
+![service_policy2](./pics/service_policy2.svg)
 
 ## Service policyの構造
 
 Service Policy RuleでClinetの条件を作成し、Service PolicyでServerに対してService Policy Ruleを適用します。Service Policy SetでService Policy RuleをNamespaceに対して適用します。
 
-![service_policy3](./pics/service_policy3.png)
+![service_policy3](./pics/service_policy3.svg)
 
 ## Service Policy
 
@@ -24,11 +24,11 @@ Service Policy RuleでClinetの条件を作成し、Service PolicyでServerに�
 
 2つのサービスを作成し、外部からdeny-serverをもつサービス(HTTP loadbalancer)は url/deny/のPathへのアクセスを拒否します。
 
-![service_policy4](./pics/service_policy4.png)
+![service_policy4](./pics/service_policy4.svg)
 
 #### Kubenretesの設定
 
-shared namespaceで known keyを作成します。
+Shared Configurationで known keyを作成します。
 Free テナントの場合、既存のLabelを削除してから作成してください。
 
 Label key: `app`
@@ -135,27 +135,27 @@ spec:
 
 作成したServiceを外部からアクセスできるようにIngress Gatewayを設定します。作成した2つの ServiceをOrigin poolとして登録します。 Manage -> Origin Pools で “Add Origin Pool”を選択します。
 
-- Origin server
-  - Name: `allow-server`
-  - Basic Configuration:
-    - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
-    - Service Name: `allow-server.security` (”Kubernetes service名 . namespace”)
-    - Select Site or Virtual Site: `Virtual Site`
-    - Virtual Site: `pref-tokyo`。
-    - Select Network on the Site: `Vk8s Networks on Site`
-  - Port: `80`
+<b>Allow-server</b>
 
-- Origin server
-  - Name: `deny-server`
-  - Basic Configuration:
-    - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
-    - Service Name: `deny-server.security` (”Kubernetes service名 . namespace”)
-    - Select Site or Virtual Site: `Virtual Site`
-    - Virtual Site: `pref-tokyo`。
-    - Select Network on the Site: `Vk8s Networks on Site`
-  - Port: `80`
+- Name: `allow-server`
+- Origin Servers:
+  - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
+  - Service Name: `allow-server.security` (”Kubernetes service名 . namespace”)
+  - Select Site or Virtual Site: `Virtual Site`
+  - Virtual Site: `pref-tokyo`。
+  - Select Network on the Site: `Vk8s Networks on Site`
+- Port: `80`
 
-![service_policy5](./pics/service_policy5.png)
+<b>Deny-server</b>
+
+- Name: `deny-server`
+- Origin Servers:
+  - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
+  - Service Name: `deny-server.security` (”Kubernetes service名 . namespace”)
+  - Select Site or Virtual Site: `Virtual Site`
+  - Virtual Site: `pref-tokyo`。
+  - Select Network on the Site: `Vk8s Networks on Site`
+- Port: `80`
 
 #### HTTP Load Balancerの設定
 
@@ -164,18 +164,20 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 
 - Name: `allow-server-lb`
 - Labels: `app: allow-server`
-- Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Domains: `dummy.localhost` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
 - Default Route Origin Pools: `security/allow-server` (上記で作成したOrigin pool)
 
-設定するとDNS infoにVolterraからdomain名が払い出されます。作成したロードバランサーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
+設定するとDNS infoにDCSからdomain名が払い出されます。作成したロードバランサーのDomainsに設定するか、任意のDNSサーバのCNAMEレコードに設定してください。
 外部から設定したドメインにアクセスするとNginxのWebUIが表示されます。
+
+![service_policy5](./pics/service_policy5.png)
 
 同様にDeny server用のロードバランサーも作成します。
 
 - Name: `deny-server-lb`
 - Labels: `app: deny-server`
-- Domains: `dummy.localhost` (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Domains: `dummy.localhost` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
 - Default Route Origin Pools: `security/deny-server` (上記で作成したOrigin pool)
 
@@ -190,19 +192,23 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 
 #### Service policyの作成
 
+Service Policyは `Manage` -> `Servive Policies` -> `Service Policy`で作成します。
+
 作成したdeny-serverの`/deny`へのアクセスを拒否します。
 作成手順は以下となります。
-1. 全ての津神を許可するルールの作成
+1. 全てのサービスを許可するルールの作成
 2. deny-serverの`/deny`を拒否するルールの作成
 3. ルールの適用
 
-1. 暗黙のDenyがあるため、全てを許可するポリシーを作成します。
+<b>1.全てのサービスを許可するルールの作成</b>
+
+暗黙のDenyがあるため、全てを許可するポリシーを作成します
 
 - name: `allow-any`
   - Server Selection: `Any Server`
   - Select Policy Rules: `Allow All Requests`
 
-2. deny-serverの`/deny`を拒否するルールの作成
+<b>2. deny-serverの`/deny`を拒否するルールの作成</b>
 
 - name: `deny-server`
   - Server Selection: `Group of Servers by Label Selector`
@@ -213,19 +219,19 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
         - Rule Specification
           - Action: `Deny`
           - Client Selection: `Any Client`
-          - HTTP Method.Method List: `ANY`
+          - HTTP Method: `ANY`
           - HTTP Path: `Prefix Values : /deny`
       - Name: allow-others (Rule2)
         - Rule Specification
           - Action: `Allow`
           - Client Selection: `Any Client`
 
-![adc_deny_3](./pics/adc_deny_4.png)
-![adc_deny_3](./pics/adc_deny_5.png)
+![adc_deny_4](./pics/adc_deny_4.png)
+![adc_deny_5](./pics/adc_deny_5.png)
 
-3. ルールの適用
+<b>3. ルールの適用</b>
 
-Active Service PoliciesにService Policyを追加します
+Service Policyは `Manage` -> `Servive Policies` -> `Active Service Policies`で Active Service PoliciesにService Policyを追加します
 
 - service-policy-set1
   - Policies: Select policy: `[1: deny-server, 2:allow-server]`
@@ -244,13 +250,13 @@ deny-web-serverの<http://url/>,<http://url/allow/> は正常に表示されま�
 作成したサービスにアクセスできることを確認します。
 allow-web-serverの<http://url/>,<http://url/allow/> ,<http://url/deny>,  はアクセスが可能です。
 
-System -> Site Securityよりフィルターにヒットしたログを確認できます。 ログには送信元のPod名や送信先のIPアドレスやプロトコル、ヒットしたポリシーなどが表示されます。
+`Load Balancers` -> `NTTP Load Balancers`よりフィルターにヒットしたログを確認できます。 ログには送信元のPod名や送信先のIPアドレスやプロトコル、ヒットしたポリシーなどが表示されます。
 
-![adc_deny_7](./pics/adc_deny_chk.png)
+![adc_deny_8](./pics/adc_deny_9.png)
 
 #### Kubernetes ServiceへのService Policy適用
 
-VolterrではKubernetesのServiceのタイプが`HTTP_PROXY`, `TCP_PROXY`, `TCP_PROXY_WITH_SNI`の3種類があり、デフォルトは`TCP_PROXY`です。
+DCSではKubernetesのServiceのタイプが`HTTP_PROXY`, `TCP_PROXY`, `TCP_PROXY_WITH_SNI`の3種類があり、デフォルトは`TCP_PROXY`です。
 TCP ProxyではHTTPベースのフィルタはかからないため、Kubernetes ServiceのマニフェストにHTTP_PROXYを有効にするannotation｀ves.io/proxy-type｀を設定します。
 Freeアカウントでは`app-client`を建てられないため、allow-serverを削除してからマニフェストを追加してください。
 

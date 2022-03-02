@@ -3,11 +3,12 @@
 同一Site内では通常のKubernetesと同様にPodはService経由で他のPodにアクセスできます。
 異なるSiteのServiceにアクセスする場合はHTTP/TCP Loadbalancerの設定が必要です。
 
-![app_app1](./pics/app_app1.png)
+![app_app1](./pics/app_app1.svg)
 
 ## vk8s manifest の作成
 
 namespace:`app-app`を作成し、vk8sに以下の2つのVirutal siteを設定します。
+
 Name: `pref-tokyo`
 Site type: `CE`
 Site Selecter Expression: `pref:tokyo`
@@ -105,11 +106,12 @@ spec:
 作成したosaka-appワークロードをOrigin-poolに登録します。
 
 - Name: `osaka-app`
-- Basic Configuration: ”Select Type of Origin Server”は`k8sService Name of Origin Server on given Sites`を選択します。
-- Service Name: `osaka-app.app-app`
-- Select Site or Virtual Site: `Virtual Site`を選択し、`app-app/pref-osaka`を指定します。
-- Select Network on the Site: `Vk8s Networks on Site`を指定します。
-- Port: `8080`を設定します。
+- Origin Servers
+  - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
+  - Service Name: `osaka-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-osaka`
+  - Select Network on the Site: `Vk8s Networks on Site`
+  - Port: `8080`
 
 ![app_app_origin](./pics/app_app_origin.png)
 
@@ -123,12 +125,13 @@ HTTP loadbalancerを作成し、Origin poolを設定します。
 - Select Type of Load Balancer: `http`
 - Default Origin Servers: `app-app/osaka-app`
 - VIP Configuration: VIP Configuration を有効化し、`Advertise Custom` を選択しConfigureを選択
-- Select Where to Advertise: `virtual-site`
 - Site Network: `vK8s Service Network`
 - Virtual Site Reference: `app-app/pref-tokyo`
+- Select Where to Advertise: `virtual-site`
 
-![app_app_http_lb1](./pics/http_lb1.png)
-![app_app_http_lb2](./pics/http_lb2.png)
+
+![app_app_http_lb1](./pics/app_app_http_lb1.png)
+![app_app_http_lb2](./pics/app_app_http_lb2.png)
 
 ### アクセス確認
 
@@ -141,3 +144,4 @@ tokyo-appを選択し、 bashを入力してConnectからコンソールに接�
 
 ![app_app_pod1](./pics/app_app_pod1.png)
 ![app_app_pod2](./pics/app_app_pod2.png)
+ 

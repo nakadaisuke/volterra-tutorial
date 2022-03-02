@@ -1,14 +1,14 @@
 # Virtual Kubernetesの設定
 
-Virtual KubernetesはVolterra独自の概念です。Volterraでは複数のKubernetes Clusterを1つの仮想的なKubernetesとして扱います。
+Virtual KubernetesはDCS独自の概念です。DCSでは複数のKubernetes Clusterを1つの仮想的なKubernetesとして扱います。
 このため、Virtua Kubernetesには複数のVirtual Siteを設定することができ、1つのKubernetes manifestを複数のKubernetes clusterに配布することが可能です。
 
-![vk8s](./pics/vk8s.png)
+![vk8s](./pics/vk8s.svg)
 
 ## ユーザーNamespaceの作成
 
 Virtual KubernetesはユーザーNamepsaceに作成するため、Namespaceを作成します。
-Generalの`My Namespaces`から、 `Add namespace`を開き、Namapace名を入れてSaveします。
+Administrationの`Personal Management` -> `My Namespaces`から、 `Add namespace`を開き、Namapace名を入れてSaveします。
 作成したNamespaceを選択すると、ユーザーNamaspaceに入れます。
 
 ![namespace1](./pics/namespace1.png)
@@ -16,7 +16,7 @@ Generalの`My Namespaces`から、 `Add namespace`を開き、Namapace名を入�
 
 ## Virtual Siteの作成
 
-作成したNamespaceに移動し、Manage -> Virtual sitesより `Add Virtual site`を選択します。
+Distributed Appsに移動し、作成したNamespaceに移動します。 Manage -> Virtual sitesより `Add Virtual site`を選択します。
 nameに virtual-site名、Site TypeはCEを選択し、Site Selector ExpressionではSiteに設定したラベルを選択します。 Continueを選択するとVirtual siteが作成されます。
 
 以下の2つのVirutal siteを設定します。
@@ -29,6 +29,7 @@ Site type: `CE`
 Site Selecter Expression: `pref:osaka`
 
 ![vsite1](./pics/vsite1.png)
+![vsite2](./pics/vsite2.png)
 
 ## Virtual kubernetesの作成
 
@@ -37,12 +38,13 @@ Applications -> Virtual k8sより`Add Virtual K8s`を選択します。Nameを�
 
 ![vk8s1](./pics/vk8s1.png)
 ![vk8s2](./pics/vk8s2.png)
+![vk8s3](./pics/vk8s3.png)
 
 ## deplyomentの作成
 
 作成したVirtual K8sを選択するとKuberneresの作成画面が表示されます。通常のKubernetes Manifestと同様にDeploymentやServiceを作成すると、実際のSiteにワークロードが作成されます。
 
-下のようにDeploymentを設定すると、該当するSiteにコンテナが立ち上がります。
+下のようにAdd DeplyomentからDeploymentを設定すると、該当するSiteにコンテナが立ち上がります。
 
 ```
 apiVersion: apps/v1
@@ -66,7 +68,8 @@ spec:
         - containerPort: 80
 ```
 
-![vk8s_deplyoment](./pics/vk8s_deployment.png)
+![vk8s_deplyoment1](./pics/vk8s_deployment1.png)
+![vk8s_deplyoment2](./pics/vk8s_deployment2.png)
 
 ## Serviceの作成
 
@@ -89,7 +92,8 @@ spec:
     app: nginx
 ```
 
-![vk8s_service](./pics/vk8s_service.png)
+![vk8s_service1](./pics/vk8s_service1.png)
+![vk8s_service2](./pics/vk8s_service2.png)
 
 `Endpoints`をクリックするとServiceが認識しているPodが表示されます。
 
@@ -115,6 +119,6 @@ NAME               READY   UP-TO-DATE   AVAILABLE   AGE
 nginx-deployment   0/1     0            0           9s
 ```
 
-Kubeconfigなどの最大日数は General -> Tenant Settings -> Tenant Overview -> Credential Expiry Policy で最大365日まで変更できます。
+Kubeconfigなどの最大日数は Administration -> Tenant Settings -> Tenant Overview -> Credential Expiry Policy で最大365日まで変更できます。
 
 ![expiredate](./pics/expiredate.png)

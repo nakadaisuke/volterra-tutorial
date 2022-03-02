@@ -4,7 +4,7 @@ Namespaceには複数のVirtual-siteを設定できます。例えば pref-tokyo
 Vk8sを作成すると、所属させるVirtual-siteを選択できます。
 図にすると以下のような階層型構造になります。
 
-![vsite_object](./pics/vsite_object.png)
+![vsite_object](./pics/vsite_object.svg)
 
 DeploymentやServiceなどのManifestを作成すると、Vk8s内の全てのVirtual siteに反映されます。特定のVirtual-siteだけにManifestを反映させてい場合はAnnotation `ves.io/sites`を使用します。
 
@@ -29,13 +29,16 @@ DeploymentやServiceなどのManifestを作成すると、Vk8s内の全てのVir
 ## 複数virtual siteをもつワークロードの作成
 
 namespace:`multi-sites`を作成し、vk8sに2つの以下の2つのVirutal siteを設定します。
-Name: `pref-tokyo`
-Site type: `CE`
-Site Selecter Expression: `pref:tokyo`
 
-Name: `pref-osaka`
-Site type: `CE`
-Site Selecter Expression: `pref:osaka`
+Virtual site1
+- Name: `pref-tokyo`
+- Site type: `CE`
+- Site Selecter Expression: `pref:tokyo`
+
+Virtual site2
+- Name: `pref-osaka`
+- Site type: `CE`
+- Site Selecter Expression: `pref:osaka`
 
 - Freeユーザーの場合は既存のNamespaceを先に削除してから作成してください。
 
@@ -145,19 +148,24 @@ spec:
 
 作成した2つのサービスをロードバランスして公開します。
 
-![ingress_multi_vsite](./pics/ingress_multi_vsite.png)
+![ingress_multi_vsite](./pics/ingress_multi_vsite.svg)
 
 ### Origin poolの作成
 
 作成したワークロードをそれぞれ`tokyo-app`と`osaka-app`としてOrigin-poolに登録します。
 
-- Name: `tokyo-app`  - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
+Manage -> Origin Pools で “Add Origin Pool”を選択しま
+
+- Name: `tokyo-app`
+- Origin Servers
+  - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
   - Service Name: `tokyo-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
   - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-tokyo`
   - Select Network on the Site: `Vk8s Networks on Site`
   - Port: `8080`
 
 - Name: `osaka-app`
+- Origin Servers
   - Select Type of Origin Server: `k8sService Name of Origin Server on given Sites`
   - Service Name: `osaka-app.multi-sites`を入力します。 (`kubernetes service名.namespace`のフォーマット）
   - Select Site or Virtual Site: `Virtual Site` -> `multi-sites/pref-osaka`
@@ -165,20 +173,19 @@ spec:
   - Port: `8080`
 
 ![origin_multi_vsite1](./pics/origin_multi_vsite1.png)
-![origin_multi_vsite2](./pics/origin_multi_vsite2.png)
 
 ### HTTP loadbalancerの作成
 
 Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
 
-- Name: multi-vsite-lb
-- Domains: dummy.localhost (設定するとDNS infoにVolterraからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Name: `multi-vsite-lb`
+- Domains: `dummy.domain-name` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
 - Select Type of Load Balancer: `HTTP`
-- Default Origin Pools: 2つのOrigin poolを設定します。
+- Default Origin servers: 上記で作成した2つのOrigin poolを設定
+
 Weightは100,100にしていますが、比率を変えることで、ローバランスレシオを調節できます。
 
 ![http_lb_multi_vsite1](./pics/http_lb_multi_vsite1.png)
-![http_lb_multi_vsite2](./pics/http_lb_multi_vsite2.png)
 
 Curlなどで確認すると、tokyo-app, osaka-appでロードバランスされることが確認できます。
 

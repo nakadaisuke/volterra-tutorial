@@ -1,20 +1,19 @@
 # Application Delivery Controller
 
-VoltMesh単体で仮想マシンや既存Kubernetes ClusterにWAFやAPIゲートウェイの機能を提供します。Internet上のVoltMeshを利用しても良いですし、ローカルでの利用も可能です。
+Mesh単体で仮想マシンや既存Kubernetes ClusterにWAFやAPIゲートウェイの機能を提供します。Internet上のMeshを利用しても良いですし、ローカルでの利用も可能です。
 [4.Ingress Gateway](4_ingress_gateway.md)の設定と機能の差分はなく、Origin poolでのEndpointの指定のみが異なります。
 
-![app_delivery_cntl1.png](./pics/app_delivery_cntl1.png)
+![app_delivery_cntl1](./pics/app_delivery_cntl1.svg)
 
-ESXiやKVM上にNginxでWebSiteをたちあげ、VoltMeshのInsideインターフェイスからインターネット経由でサービスを公開します。
+ESXiやKVM上にNginxでWebSiteをたちあげ、MeshのInsideインターフェイスからインターネット経由でサービスを公開します。
 構成はOutsideのみのワンアームまたは、Outside/Insideのルーティングが可能です、
-** ESXi にVolterra Nodeをインストールする際、OVAファイルで一度立ち上げたあと、NICを追加して MultiNIC構成にしてください。
 
-![app_delivery_cntl2](./pics/app_delivery_cntl2.png)
+![app_delivery_cntl2](./pics/app_delivery_cntl2.svg)
 
 ## Origin poolの作成
 
 namespaceは`seurity`とし、virtual-siteは`vsite-adc`を作成します。
-VoltMesh経由で通信したいVMのIPアドレスをOrigin-poolに登録します。
+Mesh経由で通信したいVMのIPアドレスをOrigin-poolに登録します。
 
 - origin pool
   - name: `nginx-vm`
@@ -68,5 +67,5 @@ Manage -> HTTP Load Balancers で “Add HTTP load balancer”を選択します
 
 ## 確認
 
-設定するとDNS infoにVolterraからdomain名が払い出されます。任意のDNSサーバのCNAMEレコードに設定してください。
+設定するとDNS infoにDCSからdomain名が払い出されます。任意のDNSサーバのCNAMEレコードに設定してください。
 ドメインにアクセスするとNginxのWebUIが表示されます。

@@ -33,8 +33,8 @@ AppStackはマネージドKubernetesとして、ノード管理、アプリケ�
 
 ## チュートリアル
 
-1. [Volterraの基礎知識](./docs/1_dcs-tutorial.md)
-2. [Volterra Nodeのインストールと設定](./docs/2_dcs-install.md)
+1. [DCSの基礎知識](./docs/1_dcs-tutorial.md)
+2. [DCS Nodeのインストールと設定](./docs/2_dcs-install.md)
 3. [Virtual Kubernetesの設定](./docs/3_virtual_kubernetes.md)
 4. [Ingress Gatewayの設定](./docs/4_ingress_gateway.md)
 5. [複数Virtual siteの使い方](./docs/5_multiple_vsite.md)

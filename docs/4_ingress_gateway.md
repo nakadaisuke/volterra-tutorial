@@ -27,7 +27,7 @@ Virtual Kubernetesの設定で作成したNginxを外部からアクセスでき
 
 ### HTTP load balancerの設定
 
-Manage -> Loab Balancers -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+Home -> Load Balancers -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
 
 - Name: `nginx-lb`
 - Domains: `dummy.domain-name` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)

@@ -21,7 +21,7 @@ DCSのグローバルネットワークインフラストラクチャと分散�
 
 DCSではSiteとしてDCS Nodeクラスタを管理し、Virtual Siteは複数のSiteをグループ化したものです。Virtual SiteはSiteに設定されたラベルを元にグループ化され、アプリケーション配信やセキュリティポリシーなどを設定すると、対象のグループ全体に情報が伝搬します。
 
-![site_vsite](./pics/site_vsite1.svg)
+![site_vsite1](./pics/site_vsite1.svg)
 
 例えば4つのSite(Kuberentes cluster)があった場合、Virtual siteとして`minami-kanto`を作成します。
 このVirtual siteに対してKubernetes Manifestやセキュリティポリシーを設定すると、Virtual site内のすべてのSiteに設定が配布されます。

@@ -340,3 +340,243 @@ virt-launcher-testvm-jxm92   3/3     Running   0          24m
 PodへのアクセスはContainerと同様にUIのコンソールなどからアクセスできます。
 
 ![kubevirt_ops1](./pics/kubevirt_ops1.png)
+
+### VMの操作と外部からのVM接続
+
+KubevirtのプラグインをKubectlに導入することでコンテナと同じようにVMの操作が可能です。
+プラグインの管理には[Krew](https://krew.sigs.k8s.io/docs/user-guide/setup/install/)というOSSが便利です。
+
+Krewを導入したあと、Kubevirtプラグインを導入します。以下のコマンドでプラグインのインストールが可能です。
+
+```
+kubectl krew install virt
+```
+
+コマンドを発行できれば完了です。
+
+```
+ kubectl virt
+Available Commands:
+  addvolume         add a volume to a running VM
+  completion        generate the autocompletion script for the specified shell
+  console           Connect to a console of a virtual machine instance.
+  expose            Expose a virtual machine instance, virtual machine, or virtual machine instance replica set as a new service.
+  fslist            Return full list of filesystems available on the guest machine.
+  guestfs           Start a shell into the libguestfs pod
+  guestosinfo       Return guest agent info about operating system.
+  help              Help about any command
+  image-upload      Upload a VM image to a DataVolume/PersistentVolumeClaim.
+  migrate           Migrate a virtual machine.
+  migrate-cancel    Cancel migration of a virtual machine.
+  pause             Pause a virtual machine
+  permitted-devices List the permitted devices for vmis.
+  port-forward      Forward local ports to a virtualmachine or virtualmachineinstance.
+  removevolume      remove a volume from a running VM
+  restart           Restart a virtual machine.
+  soft-reboot       Soft reboot a virtual machine instance
+  ssh               Open a SSH connection to a virtual machine instance.
+  start             Start a virtual machine.
+  stop              Stop a virtual machine.
+  unpause           Unpause a virtual machine
+  usbredir          Redirect a usb device to a virtual machine instance.
+  userlist          Return full list of logged in users on the guest machine.
+  version           Print the client and server version information.
+  vnc               Open a vnc connection to a virtual machine instance.
+
+Use "kubectl virt <command> --help" for more information about a given command.
+Use "kubectl virt options" for a list of global command-line options (applies to all commands).
+```
+
+Fedoraのイメージを使用し、VM内でNginxをたちあげ外部からの接続を行ったり、VMへのSSH接続を行います。
+
+以下のYamlを使用し、VMと対応するサービスを作成します。サービスでは22番(SSH)と80番(HTTP)を設定しています。
+ユーザーは `fedora` パスワードは `fedora`です。
+
+```
+apiVersion: kubevirt.io/v1alpha3
+kind: VirtualMachine
+metadata:
+  name: testvm
+spec:
+  running: false
+  template:
+    metadata:
+      labels:
+        kubevirt.io/size: small
+        kubevirt.io/domain: testvm
+    spec:
+      domain:
+        devices:
+          disks:
+            - name: containerdisk
+              disk:
+                bus: virtio
+            - name: cloudinitdisk
+              disk:
+                bus: virtio
+          interfaces:
+          - name: default
+            bridge: {}
+        resources:
+          requests:
+            memory: 4096M
+      networks:
+      - name: default
+        pod: {}
+      volumes:
+        - name: containerdisk
+          containerDisk:
+            image: kubevirt/fedora-cloud-container-disk-demo
+        - name: cloudinitdisk
+          cloudInitNoCloud:
+            userData: |-
+              #cloud-config
+              password: fedora
+              chpasswd: { expire: False }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+  name: testvm
+  namespace: my-nginx
+spec:
+  ports:
+  - name: ssh
+    port: 22
+    protocol: TCP
+    targetPort: 22
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    kubevirt.io/domain: testvm
+  sessionAffinity: None
+  type: ClusterIP
+```
+
+yamlをkubectl applyするとVMが作成されます。
+
+```
+kubectl --kubeconfig ves_system_mk8s-cluster1_kubeconfig_local.yaml -n my-nginx apply -f kubevirt-nginx.yaml
+virtualmachine.kubevirt.io/testvm created
+service/testvm created
+
+kubectl --kubeconfig ves_system_mk8s-cluster1_kubeconfig_local.yaml -n my-nginx get vm
+NAME     AGE   STATUS    VOLUME
+testvm   7s    Stopped
+```
+
+作成したVMをスタートします。
+
+```
+kubectl virt start testvm --kubeconfig ves_system_mk8s-cluster1_kubeconfig_local.yaml -n my-nginx
+
+VM testvm was scheduled to start
+```
+
+STATUSがRunningにかわりVMが起動します。起動するまでしばらく待ちます。
+
+```
+kubectl --kubeconfig ves_system_mk8s-cluster1_kubeconfig_local.yaml -n my-nginx get vm
+NAME     AGE   STATUS    VOLUME
+testvm   40m   Running
+
+
+kubectl virt console testvm --kubeconfig ves_system_mk8s-cluster1_kubeconfig_local.yaml -n my-nginx
+ 36K
+[    1.815348] smpboot: CPU0: AMD EPYC Processor (family: 0x17, model: 0x1, stepping: 0x2)
+[    1.820348] Performance Events: PMU not available due to virtualization, using software events only.
+[    1.824499] rcu: Hierarchical SRCU implementation.
+[    1.837348] NMI watchdog: Perf NMI watchdog permanently disabled
+[    1.838735] smp: Bringing up secondary CPUs ...
+[    1.839277] smp: Brought up 1 node, 1 CPU
+[    1.839428] smpboot: Max logical packages: 1
+[    1.839930] smpboot: Total of 1 processors activated (4788.72 BogoMIPS)
+[    1.864966] devtmpfs: initialized
+[    1.871393] x86/mm: Memory block size: 128MB
+```
+
+ユーザーとパスワードを入力してログインします。ここからは通常のVM同じです。
+
+```
+testvm login: fedora
+Password:
+
+[fedora@testvm ~]$
+[fedora@testvm ~]$
+```
+
+Nginxをインストールし起動します。
+
+```
+sudo dnf install -y nginx
+sudo nginx
+```
+
+VM上に立ち上げたNginxに外部からのアクセスを許可します。Manage k8s内で作成したNamespaceがConsoleに作成されていない場合、先にNamespaceを作成してください。
+Containerと同じようにOrigin poolを作成します。
+
+Nginxをインターネット上に公開する設定を行います。
+
+Home -> Loab Balancers -> Origin Pools でVMが作成されているNamespaceを選択します。
+
+- Name: `kubevirt-nginx`
+- Origin Servers
+  - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
+  - Service Name: `testvm.namespace`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Select Site or Virtual Site: `Site` -> `mk8s site名`
+  - Select Network on the Site: `vk8s Networks on Site`
+- Port: `80`
+
+
+Home -> HTTP Load Balancers で “Add HTTP load balancer”を選択します。
+
+- Name: `kubevirt-nginx`
+- Domains: `dummy.domain-name` (設定するとDNS infoにDCSからdomain名が払い出されます。設定後に払い出されたドメイン名を設定してください。)
+- Select Type of Load Balancer: `HTTP`
+- Default Origin servers: `namespace/kubevirt-nginx` (上記で作成したOrigin pool)
+
+ブラウザなどでドメインにアクセスするとテストページが表示されます。
+
+![kubevirt_lb1](./pics/kubevirt_lb1.png)
+
+次にVMに対してローカルからSSHできるように設定します。
+
+Home -> Loab Balancers -> Origin Pools でVMが作成されているNamespaceを選択します。
+
+- Name: `kubevirt-ssh`
+- Origin Servers
+  - Select Type of Origin Server: `k8s Service Name of Origin Server on given Sites.`
+  - Service Name: `testvm.namespace`を入力します。 (`kubernetes service名.namespace`のフォーマット）
+  - Select Site or Virtual Site: `Site` -> `mk8s site名`
+  - Select Network on the Site: `vk8s Networks on Site`
+- Port: `22`
+
+Home -> TCP Load Balancers で “Add TCP load balancer”を選択します。
+
+- Name: `kubevirt-ssh`
+- Listen Port: `10022` # VMにSSH接続するためのポート番号
+- Default Origin Pools: `namespace/kubevirt-ssh` (上記で作成したOrigin pool)
+- VIP Configuration: `Show Advanced Fields`を有効にし、`Advertise Custom`を指定
+- Edit Configure
+  - List of Sites to Advertise
+    - Select Where to Advertise: `site`
+    - Site Network: `Inside and Outside Network`
+    - Virtual Site Reference: `managed k8sのサイト名`
+
+Manage k8sのSiteのIPアドレスにsshするとVMにリダイレクトされます。
+
+```
+ssh fedora@192.168.201.3 -p 10022
+The authenticity of host '[192.168.201.3]:10022 ([192.168.201.3]:10022)' can't be established.
+ECDSA key fingerprint is SHA256:Sdsh+ybdYjPQk/YxAIiuWdeNVMOp42kMIu/bNwp4obM.
+ECDSA key fingerprint is MD5:61:a1:4a:7f:4e:f5:8c:d5:05:3f:18:bf:ec:af:bb:cc.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '[192.168.201.3]:10022' (ECDSA) to the list of known hosts.
+fedora@192.168.201.3's password:
+Last login: Tue Apr 19 00:39:14 2022
+[fedora@testvm ~]$
+[fedora@testvm ~]$
+```
